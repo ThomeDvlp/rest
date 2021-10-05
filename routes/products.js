@@ -1,7 +1,32 @@
 const express = require('express');
 const router = express.Router();
 const mysql = require('../mysql').pool;
+const multer = require('multer');
 
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, './uploads');
+  },
+  filename: function (req, file, cb) {
+    cb(null,new Date().toISOString().replace(/:/g, '-') + file.originalname);
+  }
+});
+
+const fileFilter = (req, file, cb) => {
+  if (file.mimetype === 'image/jpeg' || file.mimetype === 'image/png'){
+    cb(null, true);
+  }else{
+    cb(null, false);
+  }
+}
+
+const upload = multer({ 
+  storage: storage,
+  limits:{
+    fileSize: 1024 * 1024 * 10
+  },
+  fileFilter: fileFilter
+});
 
 router.get('/', (req, res, next) => {
   mysql.getConnection((error, conn) => {
@@ -17,6 +42,7 @@ router.get('/', (req, res, next) => {
               product_id: prod.product_id,  
               name: prod.name, 
               price: prod.price, 
+              product_image: prod.product_image, 
               request: {
                 type: 'GET',
                 description:'Retorna detalhes do produto',
@@ -31,12 +57,17 @@ router.get('/', (req, res, next) => {
   })
 });
 
-router.post('/', (req, res, next) => {
+router.post('/', upload.single('productImage') ,(req, res, next) => {
   mysql.getConnection((error, conn) => {
+    console.log(req.file);
     if(error){return res.status(500).send({ error : error})}
     conn.query(
-      'INSERT INTO products (name, price) VALUES (?,?)',
-      [req.body.name, req.body.price],
+      'INSERT INTO products (name, price, product_image) VALUES (?,?, ?)',
+      [
+        req.body.name, 
+        req.body.price,
+        req.file.path
+      ],
       (error, result, field) => {
         conn.release();
         if (error) {
@@ -47,6 +78,7 @@ router.post('/', (req, res, next) => {
             product_id: result.product_id,
             name: req.body.name, 
             price: req.body.price,
+            product_image: req.file.path,
             request:{
               type: 'GET',
               description:'Retorna todos os produtos',
@@ -80,6 +112,7 @@ router.get('/:product_id', (req, res, next) => {
             product_id: result[0].product_id,
             name: result[0].name, 
             price: result[0].price,
+            product_image: result[0].product_image, 
             request:{
               type: 'GET',
               description:'Retorna todos os produtos',
@@ -110,7 +143,7 @@ router.patch('/', (req, res, next) => {
       (error, result, field) => {
         if (error) { return res.status(500).send({error: error})}
         const response = {
-          mensagem:'Produto inserido com sucesso',
+          mensagem:'Dados do produto atualizados com sucesso',
           produtoAtualizado: {
             product_id: req.bodyproduct_id,
             name: req.body.name, 

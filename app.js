@@ -3,11 +3,12 @@ const app = express();
 const morgan = require('morgan');
 const bodyParser = require('body-parser');  
 
-const productsRoute = require('./routes/products')
-const requestsRoute = require('./routes/requests')
+const productsRoute = require('./routes/products');
+const requestsRoute = require('./routes/requests');
 
-app.use(morgan('dev'))
-app.use(bodyParser.urlencoded({ extended: false }))
+app.use(morgan('dev'));
+app.use('/uploads', express.static('uploads'));
+app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 
 app.use((req, res, next) => {
@@ -19,7 +20,7 @@ app.use((req, res, next) => {
 
   if (req.method === 'OPTIONS') {
     res.header('Access-Control-Allow-Methods', 'PUT, POST, PATCH, DELETE, GET');
-    return res.status(200).send({})
+    return res.status(200).send({});
   }
 
   next();
@@ -31,8 +32,8 @@ app.use('/requests', requestsRoute);
 app.use((req, res, next)=>{
   const erro = new Error('Não encontrado');
   erro.status = 404;
-  next(erro)
-})
+  next(erro);
+});
 
 app.use((error, req, res, next)=>{
   res.status(error.status || 500);
@@ -40,7 +41,7 @@ app.use((error, req, res, next)=>{
     erro: {
       mensagem: error.message
     }
-  })
-})
+  });
+});
 
 module.exports = app;
