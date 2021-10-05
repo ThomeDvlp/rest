@@ -5,6 +5,7 @@ const bodyParser = require('body-parser');
 
 const productsRoute = require('./routes/products');
 const requestsRoute = require('./routes/requests');
+const usersRoute = require('./routes/users');
 
 app.use(morgan('dev'));
 app.use('/uploads', express.static('uploads'));
@@ -28,6 +29,7 @@ app.use((req, res, next) => {
 
 app.use('/products', productsRoute);
 app.use('/requests', requestsRoute);
+app.use('/users', usersRoute);
 
 app.use((req, res, next)=>{
   const erro = new Error('Não encontrado');
