@@ -1,7 +1,7 @@
 const express = require('express');
 const app = express();
 const morgan = require('morgan');
-const bodyParser = require('body-parser');  
+
 
 const productsRoute = require('./routes/products');
 const requestsRoute = require('./routes/requests');
@@ -9,8 +9,8 @@ const usersRoute = require('./routes/users');
 
 app.use(morgan('dev'));
 app.use('/uploads', express.static('uploads'));
-app.use(bodyParser.urlencoded({ extended: false }));
-app.use(bodyParser.json());
+app.use(express.urlencoded({ extended: false }));
+app.use(express.json());
 
 app.use((req, res, next) => {
   res.header('Access-Control-Allow-Origin', '*');

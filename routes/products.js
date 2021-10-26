@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const mysql = require('../mysql').pool;
 const multer = require('multer');
+const login = require('../middleware/login');
 
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
@@ -57,7 +58,8 @@ router.get('/', (req, res, next) => {
   })
 });
 
-router.post('/', upload.single('productImage') ,(req, res, next) => {
+router.post('/', login.obligatory, upload.single('productImage'),  (req, res, next) => {
+  console.log(req.user)
   mysql.getConnection((error, conn) => {
     console.log(req.file);
     if(error){return res.status(500).send({ error : error})}
@@ -127,7 +129,7 @@ router.get('/:product_id', (req, res, next) => {
   })  
 });
 
-router.patch('/', (req, res, next) => {
+router.patch('/', login.obligatory,(req, res, next) => {
   mysql.getConnection((error, conn) => {
     if (error) { return res.status(500).send({error: error})}
     conn.query(
@@ -161,7 +163,7 @@ router.patch('/', (req, res, next) => {
   })  
 });
 
-router.delete('/', (req, res, next) => {
+router.delete('/', login.obligatory, (req, res, next) => {
   mysql.getConnection((error, conn) => {
     if (error) { return res.status(500).send({error: error})}
     conn.query(
